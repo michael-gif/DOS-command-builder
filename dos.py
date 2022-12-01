@@ -87,8 +87,8 @@ class DOS_Command:
 
     def generate_syntax(self):
         '''
-        Generates the syntax for a command.
-        Optional arguments are put first, then required arguments at the end
+        | Generates the syntax for a command.
+        | Optional arguments are put first, then required arguments at the end
         :return:
         '''
         self.syntax = self.keyword
@@ -100,12 +100,12 @@ class DOS_Command:
 
     def detect_arguments(self, args: list):
         '''
-        Matches arguments in the given list against the required and optional arguments of the command.
-        Also checks the syntax of the given arguments against the required and optional arguments of this command.
-        If some of the required arguments are missing, a syntax error is raised.
-        If nothing is found wrong with the given arguments, then the detected arguments are returned as a dictionary.
-
-        The arguments will be looped through in reverse order to make it easier to identify the required arguments
+        | Matches arguments in the given list against the required and optional arguments of the command.
+        | Also checks the syntax of the given arguments against the required and optional arguments of this command.
+        | If some of the required arguments are missing, a syntax error is raised.
+        | If nothing is found wrong with the given arguments, then the detected arguments are returned as a dictionary.
+        |
+        | The arguments will be looped through in reverse order to make it easier to identify the required arguments
         first.
         :param args:
         :return: dict
@@ -161,8 +161,8 @@ registered_commands = {}
 
 def dos_command(attributes: dict):
     '''
-    Used to decorate functions that will be used as callbacks for commands.
-    Creates an instance of DOS_Command, which contains the command keyword, its arguments, and the syntax.
+    | Used to decorate functions that will be used as callbacks for commands
+    | Creates an instance of DOS_Command, which contains the command keyword, its arguments, and the syntax
     :param attributes:
     :return: Decorator
     '''
