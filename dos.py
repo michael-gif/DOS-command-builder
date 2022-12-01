@@ -1,3 +1,22 @@
+'''
+USAGE
+-----
+To register a command, use the template below
+
+    @dos_command({
+        'keyword': 'example',
+        'args': [
+            {'name': 'arg1', 'type': str, 'required': True},
+            {'name': 'arg2', 'type': str, 'required': False}
+        ]
+    })
+    def example(args, argc):
+        print(args, argc)
+
+To access all of the registered commands, import the 'registered_commands' attribute from this file
+To execute a command, import the 'run_command' function from this file
+'''
+
 class DOS_ArgumentParser:
     def parse(self, string_args: str):
         '''
@@ -176,7 +195,7 @@ def dos_command(attributes: dict):
     return decorator
 
 
-def execute_command(command: str):
+def run_command(command: str):
     # parse the arguments
     parser = DOS_ArgumentParser()
     sections = command.split(" ", 1)
