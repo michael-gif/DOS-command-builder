@@ -79,11 +79,12 @@ class DOS_Command:
             self.syntax += f" <{arg['name']}>"
         self.syntax = self.syntax.rstrip()
 
-    def check_syntax(self, args: list):
+    def detect_arguments(self, args: list):
         '''
-        Checks the syntax of the given arguments against the required and optional arguments of this command.
+        Matches arguments in the given list against the required and optional arguments of the command.
+        Also checks the syntax of the given arguments against the required and optional arguments of this command.
         If some of the required arguments are missing, a syntax error is raised.
-        If nothing is found wrong with the given arguments, then the detected arguments are returned.
+        If nothing is found wrong with the given arguments, then the detected arguments are returned as a dictionary.
 
         The arguments will be looped through in reverse order to make it easier to identify the required arguments
         first.
@@ -136,7 +137,7 @@ class DOS_Command:
         return dict(required, **optional)
 
 
-commands = {}
+registered_commands = {}
 
 
 def dos_command(attributes: dict):
@@ -165,12 +166,12 @@ def dos_command(attributes: dict):
 
     def decorator(callback):
         '''
-        Used to get the function reference so it can be stored in the command instance
+        Used to get the callback reference so it can be stored in the command instance
         :param callback:
         :return:
         '''
         new_command.callback = callback
-        commands[new_command.keyword] = new_command
+        registered_commands[new_command.keyword] = new_command
 
     return decorator
 
@@ -184,7 +185,7 @@ def execute_command(command: str):
     parsed_args = parser.parse(command_args)
 
     # find the relevant dos command and execute it, giving it the parsed arguments and the length of the arguments
-    relevant_dos_command: DOS_Command = commands[command_keyword]
-    detected_arguments = relevant_dos_command.check_syntax(parsed_args)
+    relevant_dos_command: DOS_Command = registered_commands[command_keyword]
+    detected_arguments = relevant_dos_command.detect_arguments(parsed_args)
     if detected_arguments:
         relevant_dos_command.callback(detected_arguments, len(detected_arguments.keys()))
