@@ -1,16 +1,23 @@
 class DOS_ArgumentParser:
-    def __init__(self):
-        self.args = []
-
     def parse(self, string_args: str):
-        self.args = []
+        '''
+        Parses a string of arguments into a list of dictionaries, each dict being an argument
+        :param string_args:
+        :return: list
+        '''
+        parsed_args = []
         args = string_args.split(" ")
         for arg in args:
             parsed_argument = self._parse_single_argument(arg)
-            self.args.append(parsed_argument)
-        return self.args
+            parsed_args.append(parsed_argument)
+        return parsed_args
 
     def _parse_single_argument(self, arg):
+        '''
+        Parses a single argument into a dictionary. For internal use only.
+        :param arg:
+        :return: dict
+        '''
         parsed_arg = {
             'name': None,
             'value': None
@@ -134,6 +141,7 @@ commands = {}
 
 def dos_command(attributes: dict):
     '''
+    Used to decorate functions that will be used as callbacks for commands.
     Creates an instance of DOS_Command, which contains the command keyword, its arguments, and the syntax.
     :param attributes:
     :return: Decorator
