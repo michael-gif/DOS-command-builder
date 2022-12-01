@@ -1,7 +1,7 @@
 '''
 USAGE
 -----
-To register a command, use the template below
+To register a command, import 'dos_command' and use the template below
 
     @dos_command({
         'keyword': 'example',
