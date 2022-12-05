@@ -92,11 +92,9 @@ class DOS_Command:
         :return:
         '''
         self.syntax = self.keyword
-        for arg in self.optional_args:
-            self.syntax += f" [{arg['name']}]"
-        for arg in self.required_args:
-            self.syntax += f" <{arg['name']}>"
-        self.syntax = self.syntax.rstrip()
+        optional_syntax = ' '.join([f"[{arg'name'}]" for arg in self.optional_arguments)]
+        required_syntax = ' '.join([f"[{arg'name'}]" for arg in self.required_args)]
+        self.syntax = '{} {} {}'.format(self.keyword, optional_syntax, required_sytnax)
 
     def detect_arguments(self, args: list):
         '''
