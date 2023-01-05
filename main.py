@@ -4,7 +4,6 @@ dos.debug = True
 
 
 @dos.dos_command({
-    'keyword': 'example',
     'help': 'this command does something',
     'args.required': [
         {'name': 'arg1', 'type': str}
