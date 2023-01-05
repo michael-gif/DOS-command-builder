@@ -1,27 +1,5 @@
 import argparse
 
-'''
-USAGE
------
-To register a command, import 'dos_command' and use the template below
-
-    @dos_command({
-        'keyword': 'example',
-        'help': 'this command does something',
-        'args.required': [
-            {'name': 'arg1', 'type': str}
-        ],
-        'args.optional': [
-            {'name': 'arg2', 'type': str}
-        ]
-    })
-    def example(args, argc):
-        print(args, argc)
-
-To access all of the registered commands, import the 'registered_commands' attribute from this file
-To execute a command, import the 'run_command' function from this file
-'''
-
 
 class DOS_Command:
     def __init__(self, keyword: str):
@@ -79,6 +57,7 @@ class DOS_Command:
 
 
 registered_commands = {}
+debug = False
 
 
 def dos_command(attributes: dict):
@@ -111,7 +90,8 @@ def dos_command(attributes: dict):
     for arg in attributes['args.optional']:
         new_command.add_arg_optional(arg)
     new_command.generate_syntax()
-    print('[INFO] Registered new command: ' + new_command.syntax)
+    if debug:
+        print('[INFO] Registered new command: ' + new_command.syntax)
 
     def decorator(callback):
         '''
