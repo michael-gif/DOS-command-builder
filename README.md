@@ -33,4 +33,7 @@ def example_command(argv, argc):
 dos.run_command('example a -arg2=1')
 ```
 
-`dos.debug` is set to `False` by default. Set it to `True` if you want to see when the commands are registered.
+## Notes
+- `dos.debug` is set to `False` by default. Set it to `True` if you want to see when the commands are registered.
+- `keyword` is optional in the decorator. If you don't specify a keyword, then the name of the function will be used instead.  
+In the example above, if 'example' wasn't specified, the 'example_command' would have been used instead.
