@@ -1,3 +1,5 @@
+import argparse
+
 '''
 USAGE
 -----
@@ -5,9 +7,12 @@ To register a command, import 'dos_command' and use the template below
 
     @dos_command({
         'keyword': 'example',
-        'args': [
-            {'name': 'arg1', 'type': str, 'required': True},
-            {'name': 'arg2', 'type': str, 'required': False}
+        'help': 'this command does something',
+        'args.required': [
+            {'name': 'arg1', 'type': str}
+        ],
+        'args.optional': [
+            {'name': 'arg2', 'type': str}
         ]
     })
     def example(args, argc):
@@ -17,51 +22,21 @@ To access all of the registered commands, import the 'registered_commands' attri
 To execute a command, import the 'run_command' function from this file
 '''
 
-class DOS_ArgumentParser:
-    def parse(self, string_args: str):
-        '''
-        Parses a string of arguments into a list of dictionaries, each dict being an argument
-        :param string_args:
-        :return: list
-        '''
-        parsed_args = []
-        args = string_args.split(" ")
-        for arg in args:
-            parsed_argument = self._parse_single_argument(arg)
-            parsed_args.append(parsed_argument)
-        return parsed_args
-
-    def _parse_single_argument(self, arg):
-        '''
-        Parses a single argument into a dictionary. For internal use only.
-        :param arg:
-        :return: dict
-        '''
-        parsed_arg = {
-            'name': None,
-            'value': None
-        }
-        if '=' in arg:
-            pair = arg.split('=', 1)
-            parsed_arg['name'] = pair[0]
-            parsed_arg['value'] = pair[1]
-        else:
-            parsed_arg['value'] = arg
-        return parsed_arg
-
 
 class DOS_Command:
     def __init__(self, keyword: str):
         self.keyword = keyword
         self.arguments = []
+        self.parser = argparse.ArgumentParser()
         self.required_args = []
         self.optional_args = []
         self.syntax = ''
         self.callback = None
 
-    def add_argument(self, arg: dict):
+    def add_arg_required(self, arg: dict):
         '''
-        Check the format of each argument given, checking the keys and the type of the value
+        | Check the format of the argument given, checking the keys and the type of the value.
+        | Then add it to the parser.
         :param arg: dict
         :return:
         '''
@@ -73,17 +48,26 @@ class DOS_Command:
         if 'type' not in arg:
             raise KeyError(f"arg {arg['name']} must have a 'type' property")
 
-        if 'required' not in arg:
-            raise KeyError(f"arg {arg['name']} must have a 'required' property")
-        if type(arg['required']) != bool:
-            raise KeyError(f"the 'required' property must be a boolean")
+        self.parser.add_argument(arg['name'], type=arg['type'])
+        self.required_args.append((arg['name'], arg['type']))
 
-        if arg['required']:
-            self.required_args.append(arg)
-        else:
-            self.optional_args.append(arg)
+    def add_arg_optional(self, arg: dict):
+        '''
+        | Check the format of the argument given, checking the keys and the type of the value.
+        | Then add it to the parser.
+        :param arg: dict
+        :return:
+        '''
+        if 'name' not in arg:
+            raise KeyError("each argument must have a 'name' property")
+        if type(arg['name']) != str:
+            raise KeyError(f"the 'name' property must be a string")
 
-        # self.arguments.append(arg)
+        if 'type' not in arg:
+            raise KeyError(f"arg {arg['name']} must have a 'type' property")
+
+        self.parser.add_argument('-' + arg['name'], type=arg['type'])
+        self.optional_args.append((arg['name'], arg['type']))
 
     def generate_syntax(self):
         '''
@@ -91,67 +75,7 @@ class DOS_Command:
         | Optional arguments are put first, then required arguments at the end
         :return:
         '''
-        self.syntax = self.keyword
-        optional_syntax = ' '.join([f"[{arg'name'}]" for arg in self.optional_arguments)]
-        required_syntax = ' '.join([f"[{arg'name'}]" for arg in self.required_args)]
-        self.syntax = '{} {} {}'.format(self.keyword, optional_syntax, required_sytnax)
-
-    def detect_arguments(self, args: list):
-        '''
-        | Matches arguments in the given list against the required and optional arguments of the command.
-        | Also checks the syntax of the given arguments against the required and optional arguments of this command.
-        | If some of the required arguments are missing, a syntax error is raised.
-        | If nothing is found wrong with the given arguments, then the detected arguments are returned as a dictionary.
-        |
-        | The arguments will be looped through in reverse order to make it easier to identify the required arguments
-        first.
-        :param args:
-        :return: dict
-        '''
-        args.reverse()
-
-        # arguments must be exclusively keyword arguments or not keyword arguments
-        num_keyword_args, num_optional_args = 0, 0
-        for arg in args:
-            if arg['name']:
-                num_keyword_args += 1
-            else:
-                num_optional_args += 1
-        if num_keyword_args and num_optional_args:
-            raise SyntaxError("arguments must be either keyword arguments or value arguments, not both")
-        using_keyword_args = True if num_keyword_args else False
-
-        required = {arg['name']: None for arg in self.required_args}
-        optional = {arg['name']: None for arg in self.optional_args}
-        keys = list(required.keys()) + list(optional.keys())
-
-        # detect the arguments
-        if using_keyword_args:
-            for arg in args:
-                arg_name = arg['name']
-                if arg_name in keys:
-                    if arg_name in required:
-                        required[arg_name] = arg['value']
-                    else:
-                        optional[arg_name] = arg['value']
-                else:
-                    raise SyntaxError(f"unknown argument: '{arg_name}'\nsyntax: {self.syntax}")
-        else:
-            index = 0
-            for arg in args:
-                current_key = keys[index]
-                if current_key in required:
-                    required[current_key] = arg['value']
-                else:
-                    optional[current_key] = arg['value']
-                index += 1
-
-        # check for missing required arguments
-        for arg_name, arg_value in required.items():
-            if not arg_value:
-                raise SyntaxError(f"missing required argument: '{arg_name}'\nsyntax: {self.syntax}")
-
-        return dict(required, **optional)
+        self.syntax = self.parser.format_usage().split('usage: ')[1].strip()
 
 
 registered_commands = {}
@@ -171,19 +95,27 @@ def dos_command(attributes: dict):
 
     if 'keyword' not in attributes:
         raise KeyError("could not find 'keyword' in attributes")
-    if 'args' not in attributes:
-        raise KeyError("could not find 'args' in attributes")
-    if type(attributes['args']) != list:
-        raise TypeError(f"args property in attributes must be a list. instead got {type(attributes['args'])}")
+    if 'args.required' not in attributes:
+        raise KeyError("could not find 'args.required' in attributes")
+    if 'args.optional' not in attributes:
+        raise KeyError("could not find 'args.optional' in attributes")
+    if type(attributes['args.required']) != list:
+        raise TypeError(f"args.required property in attributes must be a list. instead got {type(attributes['args.required'])}")
+    if type(attributes['args.optional']) != list:
+        raise TypeError(f"args.optional property in attributes must be a list. instead got {type(attributes['args.optional'])}")
+
     new_command = DOS_Command(attributes['keyword'])
-    for arg in attributes['args']:
-        new_command.add_argument(arg)
+    new_command.parser.prog = new_command.keyword
+    for arg in attributes['args.required']:
+        new_command.add_arg_required(arg)
+    for arg in attributes['args.optional']:
+        new_command.add_arg_optional(arg)
     new_command.generate_syntax()
     print('[INFO] Registered new command: ' + new_command.syntax)
 
     def decorator(callback):
         '''
-        Used to get the callback reference so it can be stored in the command instance
+        Used to get the function reference so it can be stored as the instance's callback
         :param callback:
         :return:
         '''
@@ -194,15 +126,14 @@ def dos_command(attributes: dict):
 
 
 def run_command(command: str):
-    # parse the arguments
-    parser = DOS_ArgumentParser()
+    # separate the command into its keyword and an argument list
     sections = command.split(" ", 1)
     command_keyword = sections[0]
     command_args = sections[1] if len(sections) == 2 else ''
-    parsed_args = parser.parse(command_args)
+    args_list = command_args.split(' ') if command_args else []
 
     # find the relevant dos command and execute it, giving it the parsed arguments and the length of the arguments
     relevant_dos_command: DOS_Command = registered_commands[command_keyword]
-    detected_arguments = relevant_dos_command.detect_arguments(parsed_args)
-    if detected_arguments:
-        relevant_dos_command.callback(detected_arguments, len(detected_arguments.keys()))
+    parsed_args = vars(relevant_dos_command.parser.parse_args(args_list))
+    if parsed_args:
+        relevant_dos_command.callback(parsed_args, len(parsed_args.keys()))
