@@ -4,9 +4,10 @@ dos.debug = True
 
 
 @dos.dos_command({
+    'keyword': 'test',
     'help': 'this command does something',
     'args.required': [
-        {'name': 'arg1', 'type': str}
+        {'name': 'arg1', 'type': str},
     ],
     'args.optional': [
         {'name': 'arg2', 'type': int}
@@ -16,6 +17,7 @@ def example_command(argv, argc):
     print(argv)
     print(argc)
     print("hello world")
+    return 69
 
 
-dos.run_command('example a -arg2=1')
+print(dos.run_command('test 1 2'))

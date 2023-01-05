@@ -47,7 +47,7 @@ class DOS_Command:
 
     def generate_syntax(self):
         '''
-        | Generates the syntax for a command.
+        | Generates the syntax for a command by extracting it from 'parser.format_usage()'
         | Optional arguments are put first, then required arguments at the end
         :return:
         '''
@@ -106,6 +106,7 @@ def dos_command(attributes: dict):
         if debug:
             print('[INFO] Registered new command: ' + new_command.syntax)
 
+        new_command.callback = callback
         registered_commands[new_command.keyword] = new_command
 
     return wrapper
@@ -126,5 +127,7 @@ def run_command(command: str):
 
     # parse the args list. then execute the command, giving it the parsed args
     parsed_args = vars(relevant_dos_command.parser.parse_args(args_list))
-    if parsed_args:
-        relevant_dos_command.callback(parsed_args, len(parsed_args.keys()))
+    if not parsed_args:
+        parsed_args = []
+    exit_code = relevant_dos_command.callback(parsed_args, len(parsed_args.keys()))
+    return exit_code
